@@ -1,0 +1,27 @@
+# Committed defaults. Safe for every machine
+# NO personal paths should be defined here.
+#
+# To override, copy settings.local.toml.example ->
+# settings.local.toml (gitignored) and edit. Resolution order is:
+#
+#   data_root=<argument>  # highest priority, tests / one-off reruns
+#   settings.local.toml  # your machine, gitignored
+#   settings.toml  # this file, committed
+#   built-in defaults  # lowest
+
+[paths]
+data_root = "~/.local/share/quenta"  # to be overriden
+raw = "raw"
+processed = "processed"
+figures = "figures"
+cache = "cache"
+
+[demo]  # Parameters for the synthetic dataset used by the test pipeline.
+n_sessions = 8
+n_trials = 120
+seed = 20260718
+intercept = 2.0
+slope = 1.5
+noise_sd = 1.0
+x_lo = -3.0
+x_hi = 3.0

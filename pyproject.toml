@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quenta"
+version = "0.1.0"
+description = "Analysis, figures, and reusable utilities for the Towers Task."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Thomas Morvan" }]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "tomli>=2.0; python_version<'3.11'",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov", "ruff"]
+
+[project.scripts]
+quenta-verify = "quenta.verify:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/quenta"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+# coverage is opt-in (`pytest --cov`): it slows the run and confuses debuggers,
+# and a plain `pytest` should stay fast enough to use as a pre-commit hook.
+
+[tool.coverage.run]
+source = ["quenta"]
+
+[tool.coverage.report]
+# 96% today. The floor is there to catch a whole module going untested,
+# not to enforce a test for every `if x is None` branch.
+fail_under = 90
+show_missing = true
+exclude_also = ['if __name__ == .__main__.:']
+
+[tool.ruff]
+line-length = 79
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I"]

@@ -1,0 +1,9 @@
+# Copy to `settings.local.toml` (gitignored) and edit for THIS machine.
+# You only need to change what you want to overwrite; everything else defaults
+# to what's in settings.toml.
+
+[paths]
+data_root = "/media/name/data"
+
+# [demo]
+# n_sessions = 24
