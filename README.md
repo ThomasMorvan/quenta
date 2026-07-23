@@ -17,28 +17,93 @@ notebooks/  # calls + prose, no logic
 
 ## Install
 
+Two different situations, pick the one you're in.
+
+**You want to *use* quenta**, install with pip:
+
 ```bash
-git clone <url> && cd quenta
-pip install -e ".[dev]"        # or: uv pip install -e ".[dev]"
+pip install quenta  # latest release
+pip install quenta==0.1.0  # a specific one
 ```
 
-If some other project depends on `quenta` (e.g. the repo for a paper), install
-it there pinned to a specific tag, instead of the latest commit:
+Pin the version (`==`) for anything that produces a figure in a paper. A released version is frozen forever, so pinning is what lets you regenerate that figure years later with the exact code that made it even after defaults have changed here. Upgrade deliberately, by editing the pin.
+
+**You want to *work on* quenta**:
+
+```bash
+git clone https://github.com/ThomasMorvan/quenta && cd quenta
+pip install -e ".[dev]"  # or: uv pip install -e ".[dev]"
+```
+
+`-e` (editable) links the install to `src/quenta/` instead of copying it, so edits are live. To update afterwards, `git pull` is enough; only rerun `pip install -e ".[dev]"` when the dependencies in `pyproject.toml` change.
+
+<details>
+<summary>Installing straight from git (no PyPI)</summary>
+
+Useful for a commit that isn't released yet, or a private fork:
 
 ```bash
 pip install "quenta @ git+ssh://git@github.com/ThomasMorvan/quenta@v0.1.0"
 ```
 
-It's a good idea to use tags (permanent pointer to one commit) for anything that produced a figure in a paper or when we have a major change, so we can easily get the exact same code later to regenerate if something goes wrong (change function default params, etc.).
+Add `--force-reinstall` when updating one of these. pip compares version strings, and two different commits can both call themselves `0.1.0`, so it would otherwise decide there's nothing to do.
 
---> Bump `version` in `pyproject.toml` and tag the commit:
+</details>
+
+## Release a new version
+
+To release a new version that can be pip installable: three steps.
+
+**1. Bump.** Edit `version` in `pyproject.toml`, then commit it:
 
 ```bash
-git tag v0.1.1 && git push --tags
+git commit -am "release v0.1.1"
 ```
 
-Note: Never move a tag that's already been pushed. Retagging silently changes what
-`v0.1.1` means for anyone who installed it before the change, which is bad. If a release needs fixing, tag `v0.1.2` instead.
+**2. Tag.** This is what a `git+` install resolves:
+
+```bash
+git tag v0.1.1
+git push && git push --tags
+```
+
+**3. Upload.** This is what `pip install quenta` resolves:
+
+```bash
+rm -rf dist/  # else old builds get uploaded too
+python -m build  # -> dist/quenta-0.1.1.tar.gz + .whl
+python -m twine check dist/*  # catches broken metadata before it's public
+python -m twine upload dist/*
+```
+
+Neither a pushed tag nor an uploaded version can ever be changed (that's the point, so all 0.1.0 mean the same thing for everyone). To fix a release, bump version and go through the three steps again.
+
+### First release from a new machine
+
+```bash
+pip install build twine
+```
+
+Get API token from https://pypi.org/manage/account/token/. Before quenta's first upload the only possible scope is "Entire account" as PyPI can't scope a token to a project that doesn't exist yet. Store token in ~/.pypirc, create, print, save and chmod:
+
+```bash
+printf '[pypi]\n  username = __token__\n  password = pypi-PASTE_IT_HERE\n' > ~/.pypirc
+chmod 600 ~/.pypirc
+```
+
+The `chmod` matters: that file is a password in plain text.
+
+To rehearse without burning a real version number (but yolo, so I did not do that), upload to https://test.pypi.org instead (`twine upload -r testpypi dist/*`, separate account and token). It doesn't reserve the name on real PyPI.
+
+### Narrowing the token afterwards
+
+Once a first upload exists, swap the account-wide token for a project-scoped one, so a leak can't reach your other projects. The old token works until it's deleted, so delete it *last*:
+
+1. On the token page, "Add API token" now offers **Project: quenta**. Create
+   it, copy the new `pypi-...` string.
+2. Replace the `password =` line in `~/.pypirc`.
+3. Now delete the account-wide token.
+
 
 ## Settings
 
